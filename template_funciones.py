@@ -13,6 +13,7 @@ barrios = gpd.read_file('https://cdn.buenosaires.gob.ar/datosabiertos/datasets/m
 # calculamos sus distancias a los otros puntos de df, redondeamos (obteniendo distancia en metros), y lo convertimos a un array 2D de numpy
 D = museos.to_crs("EPSG:22184").geometry.apply(lambda g: museos.to_crs("EPSG:22184").distance(g)).round().to_numpy()
 #%% Construcción matriz de adyacencia.
+
 def construye_adyacencia(D,m): 
     # Función que construye la matriz de adyacencia del grafo de museos
     # D matriz de distancias, m cantidad de links por nodo
@@ -27,11 +28,10 @@ def construye_adyacencia(D,m):
 
 #%% Bloque descomposición LU y métodos asociados (resolución de sistemas + inversibilidad)
 
-#función que realiza la descomposición LU de una matriz pasada como parámetro
 def calculaLU(matriz):
+    #Función que realiza la descomposición LU de una matriz pasada como parámetro
     # matriz es una matriz de NxN
     # Retorna la factorización LU a través de una lista con dos matrices L y U de NxN.
-    # Completar! Have fun
     L = np.eye(matriz.shape[0]) #primero pensamos a L como la Identidad
     U = matriz.copy() #en cambio a U, la definimos a priori como una copia de la matriz
     m=matriz.shape[0] #cantidad filas
@@ -49,18 +49,26 @@ def calculaLU(matriz):
     
     return L, U
 
+#------------------------------------------------
 #Nos interesa poder resolver un sistema de la forma Mx = b (M matriz, b vector conocido, x vector a determinar)
 #Para ello, si M es inversible, aprovechamos su descomposición LU para resolver los sistemas:
     #Ly = b
     #Ux = y
 # y así hallar el vector x
+#------------------------------------------------
 
-def resolver_sist_triang_inf (L, w): #resolvemos el sistema Ly = w. L y w son parámetros de entrada
+def resolver_sist_triang_inf (L, w): 
+    #Resolvemos el sistema Ly = w. L y w son parámetros de entrada. 
+    #L representa la matriz triangular inferior obtenida luego de haber hecho calculaLU(matriz)
+    #w representa un vector obtenido de el archivo provisto visitas.txt
+    
     y = np.zeros(w.shape)
     y[0] = w[0] #como L es triangular inferior, su primer elemento de y equivale al primer elemento de w
     for i in range (1,w.shape[0]):
         y[i] = w[i] - (L[i, :i]@y[:i]) #averiguamos los siguientes elementos de y_i a partir de w_i y los anteriores y_j (j < i) 
     return y #retorna el vector y que será usado en el siguiente sistema
+
+
 
 def resolver_sist_triang_sup (U, y): #resolvemos el sistema Ux = y. U e y son parámetros
     x = np.zeros(y.shape)
@@ -72,8 +80,10 @@ def resolver_sist_triang_sup (U, y): #resolvemos el sistema Ux = y. U e y son pa
         x[i] = (y[i] - (U[i, y.shape[0] - 1:i:-1]@x[y.shape[0]-1:i:-1]))/U[i][i]
     return x #retorna el vector x buscado
 
-
-def calcular_inversa (matriz): #calcula la inversa una matriz pasada como parámetro
+#------------------------------------------------
+def calcular_inversa (matriz):
+    #Función utilizada para calcular la inversa de una matriz pasada como parámetro
+    
     I = np.eye(matriz.shape[0])
     L, U = calculaLU(matriz) #agarramos su descomposición LU
     inversa = np.zeros(matriz.shape) #la inicializamos con 0
@@ -86,7 +96,9 @@ def calcular_inversa (matriz): #calcula la inversa una matriz pasada como parám
     return inversa #retorna la inversa de la matriz pasada como parámetro
 
 #%% Bloque Matrices K y K_inv
-def construye_matriz_de_grado (A): #función que crea a la matriz K
+def construye_matriz_de_grado (A): 
+    #Función que crea a la matriz de grado K, a partir de la matriz A pasada como parámetro
+    
     K = np.zeros(A.shape) #K presenta las mismas dimensiones que la matriz de adyacencia
     for i in range(A.shape[0]): #A es cuadrada, por lo tanto A.shape[0] = A.shape[1] 
         valor = 0 
@@ -95,11 +107,17 @@ def construye_matriz_de_grado (A): #función que crea a la matriz K
             K[i][i] = valor #K presenta en su diagonal la suma por filas de A
     return K #retorna la matriz de grado K
 
-def calcular_K_inversa(K): #creamos una función que invierta la matriz de grado, que se pasa como parámetro
+
+def calcular_K_inversa(K): 
+    #Función que invierte la matriz de grado, que es pasada como parámetro
+    
     K_inv = K.copy() #la inversa tiene la misma dimensión que K
     for i in range (136): 
         #K es una matriz diagonal, por lo tanto, su inversa es el resultado de invertir cada elemento de la diagonal
-        K_inv[i][i] = 1/K[i][i]
+        if (K[i][i] == 0): #Evitamos que se produzca la división por 0
+            K_inv[i][i] = 0
+        else:
+            K_inv[i][i] = 1/K[i][i] #K_inv presenta en su diagonal la inversa de la suma por filas de A
         
     return K_inv #retorna la inversa de la matriz de grado K
 
@@ -131,10 +149,8 @@ def calcula_pagerank(A,alfa):
     p = scipy.linalg.solve_triangular(U,Up) # Segunda inversión usando U
     return p
 
-A = construye_adyacencia(D, 3)
-p = calcula_pagerank(A, 1/5)
-
-def mostrar_pagerank(p): #función que imprime para cada museo los puntajes pasados como parámetro 
+def mostrar_pagerank(p): 
+    #Función que imprime para cada museo los puntajes p pasados como parámetro
     q = p.tolist() #pasamos a lista los puntajes
     for i in range(len(q)):
         print(f'El puntaje del museo {i} es {q[i][0]}') #imprimimos en pantalla el puntaje de cada museo i
@@ -174,11 +190,12 @@ def grafico (m, alfa, ax = None):
         plt.show()
         
 
+#------------------------------------------------
 
-#función para crear una única imágen que contenga todos los gráficos solicitados
-#recibe como parámetro de entrada una lista de m y un único alfa
 def agrupar_graficos_variacion_m(M, alfa):
-    #la imágen tendrá los gráficos uno al lado del otro
+    #Función para crear una única imágen que contenga todos los gráficos solicitados
+    #Recibe como parámetro de entrada una lista de m (M) y un único alfa
+    #La imágen tendrá los gráficos uno al lado del otro
     fig, axs = plt.subplots(1, len(M), figsize=(20, 5)) #la cantidad de columnas es equivalente a cuántos gráficos distintos se harán
     i = 0 #inicializamos índice para hablar de la posición de los gráficos en la imágen
     for m in M: #recorremos la lista pasada como parámetro, tomando cada m que la compone
@@ -193,10 +210,12 @@ def agrupar_graficos_variacion_m(M, alfa):
     plt.show()
 
 
+#------------------------------------------------
 
-#función para crear una única imágen que contenga todos los gráficos solicitados
-#recibe como parámetro de entrada un único m y una lista de alfas
 def agrupar_graficos_variacion_alfa (m, alfas):
+    #Función para crear una única imágen que contenga todos los gráficos solicitados
+    #Recibe como parámetro de entrada un único m y una lista de alfas
+    
     #la imágen contendrá todos los gráficos
     #lo colocamos en dos filas y cuatro columnas
     # al ser 7, al espacio restante que no presentará gráfico lo dejamos vacío
@@ -224,11 +243,12 @@ def agrupar_graficos_variacion_alfa (m, alfas):
 
 
 #%% Funciones para crear lineplots donde se muestran los Page Rank de los museos con mayor puntaje
-
-#función para un gráfico donde se muestre la variación de los puntajes de los tres museos con mayor Pagerank para distintos m
-#se muestra la evolución de éstos puntajes al modificarse el m
-#recibe como parámetro una lista de m y un único alfa  
+  
 def graficos_pagerank_por_m(M, alfa):
+    #Función para un gráfico donde se muestre la variación de los puntajes de los tres museos con mayor Pagerank para distintos m.
+    #Se muestra la evolución de éstos puntajes al modificarse el m.
+    #Recibe como parámetro una lista de m (M) y un único alfa.
+    
     #Creamos un diccionario.
     museosCentrales = {}
     Nprincipales = 3 # Cantidad de principales.
@@ -265,10 +285,13 @@ def graficos_pagerank_por_m(M, alfa):
     plt.show()
 
 
-#función para un gráfico donde se muestre la variación de los puntajes de los tres museos con mayor Pagerank para distintos alfas
-#se muestra la evolución de éstos puntajes al modificarse el alfa
-#recibe como parámetro un único m y una lista de alfas  
+#------------------------------------------------
+
 def graficos_pagerank_por_alfa(m, alfas):
+    #Función para un gráfico donde se muestre la variación de los puntajes de los tres museos con mayor Pagerank para distintos alfas
+    #Se muestra la evolución de éstos puntajes al modificarse el alfa
+    #Recibe como parámetro un único m y una lista de alfas
+    
     #Creamos un diccionario.
     museosCentrales = {}
     Nprincipales = 3 # Cantidad de museos principales
@@ -320,6 +343,7 @@ def calcula_matriz_C_continua(D):
     C = F.T @ K_inv # Calcula C multiplicando Kinv y F 
     return C
 
+#------------------------------------------------
 
 def calcula_B(C,cantidad_de_visitas):
     # Recibe la matriz T de transiciones, y calcula la matriz B que representa la relación entre el total de visitas y el número inicial de visitantes
@@ -339,26 +363,28 @@ def calcula_B(C,cantidad_de_visitas):
 
 #%% Punto 5 - parte 2 : resolución del sistema pedido y cálculo de norma
 def resolver_sist (B):
-    # función para resolver el sistema Bv = w; w matriz conocida, proveniente de 'visitas.txt'
-    # recibe como parámetro la matriz B descripta en la ecuación (4) del PDF
+    # Función para resolver el sistema Bv = w; w matriz conocida, proveniente de 'visitas.txt'
+    # Recibe como parámetro la matriz B descripta en la ecuación (4) del PDF
     w = np.loadtxt('visitas.txt').T #obtenemos w
     L, U = calculaLU(B) # usamos la descomposición LU, y resolvemos los sistemas
     y = resolver_sist_triang_inf(L, w)
     v = resolver_sist_triang_sup(U, y)
     return v #devuelve el vector v descripto en el punto 4.
 
+#------------------------------------------------
 
-#función para calcular la norma_1 de un vector pasado como parámetro
 def calcular_norma_1 (v): 
+    #Función para calcular la norma_1 de un vector pasado como parámetro
     #la norma-1 es la suma del módulo de cada coordenada del vector
     sumatoria = 0; #inicializamos una variable que guarde las sumas
     for personas in v: #agarramos cada componente del vector para agregarlo a nuestra variable
         sumatoria += abs(personas)
-    return sumatoria.round() #redondeamos, devolviendo un número entero, pues se trata de cantidad de personas
-
+    print(f'La norma 1 del vector v ingresado es: {sumatoria.round()}') #redondeamos, devolviendo un número entero, pues se trata de cantidad de personas
 
 #%% Punto 6: cálculo de condición
-def condicion_1_B (B): #calcula la condición 1 de la matriz
+def condicion_1_B (B): 
+    #Calcula la condición 1 de la matriz pasada como parámetro B
+    
     #cond_1(B) = ||B||_1 * ||B_inv||_1
     B_inv = calcular_inversa(B) #calculamos la inversa de la matriz B
     #Por propiedad, la norma 1 de una matriz es la columna cuya suma de los módulos de sus coeficientes sea mayor
