@@ -29,7 +29,7 @@ def construye_adyacencia(D,m):
 #%% Bloque descomposición LU y métodos asociados (resolución de sistemas + inversibilidad)
 
 def calculaLU(matriz):
-    #Función que realiza la descomposición LU de una matriz pasada como parámetro
+    # Función que realiza la descomposición LU de una matriz pasada como parámetro
     # matriz es una matriz de NxN
     # Retorna la factorización LU a través de una lista con dos matrices L y U de NxN.
     L = np.eye(matriz.shape[0]) #primero pensamos a L como la Identidad
@@ -49,16 +49,16 @@ def calculaLU(matriz):
     
     return L, U
 
-#------------------------------------------------
+#-------------------------------------------------------
 #Nos interesa poder resolver un sistema de la forma Mx = b (M matriz, b vector conocido, x vector a determinar)
 #Para ello, si M es inversible, aprovechamos su descomposición LU para resolver los sistemas:
     #Ly = b
     #Ux = y
 # y así hallar el vector x
-#------------------------------------------------
+#-------------------------------------------------------
 
 def resolver_sist_triang_inf (L, w): 
-    #Resolvemos el sistema Ly = w. L y w son parámetros de entrada. 
+    #Resolvemos el sistema Ly = w. L y w son parámetros de entrada
     #L representa la matriz triangular inferior obtenida luego de haber hecho calculaLU(matriz)
     #w representa un vector obtenido de el archivo provisto visitas.txt
     
@@ -81,8 +81,8 @@ def resolver_sist_triang_sup (U, y): #resolvemos el sistema Ux = y. U e y son pa
     return x #retorna el vector x buscado
 
 #------------------------------------------------
-def calcular_inversa (matriz):
-    #Función utilizada para calcular la inversa de una matriz pasada como parámetro
+def calcular_inversa (matriz): 
+    #Función utilizada para calcular la inversa una matriz pasada como parámetro
     
     I = np.eye(matriz.shape[0])
     L, U = calculaLU(matriz) #agarramos su descomposición LU
@@ -97,7 +97,7 @@ def calcular_inversa (matriz):
 
 #%% Bloque Matrices K y K_inv
 def construye_matriz_de_grado (A): 
-    #Función que crea a la matriz de grado K, a partir de la matriz A pasada como parámetro
+    #Función que crea a la matriz de grado K, , a partir de la matriz de adyacencia pasada como parámetro
     
     K = np.zeros(A.shape) #K presenta las mismas dimensiones que la matriz de adyacencia
     for i in range(A.shape[0]): #A es cuadrada, por lo tanto A.shape[0] = A.shape[1] 
@@ -108,8 +108,8 @@ def construye_matriz_de_grado (A):
     return K #retorna la matriz de grado K
 
 
-def calcular_K_inversa(K): 
-    #Función que invierte la matriz de grado, que es pasada como parámetro
+def calcular_K_inversa(K):
+    #Función que invierte la matriz de grado, que se pasa como parámetro
     
     K_inv = K.copy() #la inversa tiene la misma dimensión que K
     for i in range (136): 
@@ -149,8 +149,8 @@ def calcula_pagerank(A,alfa):
     p = scipy.linalg.solve_triangular(U,Up) # Segunda inversión usando U
     return p
 
-def mostrar_pagerank(p): 
-    #Función que imprime para cada museo los puntajes p pasados como parámetro
+def mostrar_pagerank(p):
+    #Función que imprime para cada museo los puntajes pasados como parámetro 
     q = p.tolist() #pasamos a lista los puntajes
     for i in range(len(q)):
         print(f'El puntaje del museo {i} es {q[i][0]}') #imprimimos en pantalla el puntaje de cada museo i
@@ -243,11 +243,11 @@ def agrupar_graficos_variacion_alfa (m, alfas):
 
 
 #%% Funciones para crear lineplots donde se muestran los Page Rank de los museos con mayor puntaje
-  
+
 def graficos_pagerank_por_m(M, alfa):
-    #Función para un gráfico donde se muestre la variación de los puntajes de los tres museos con mayor Pagerank para distintos m.
-    #Se muestra la evolución de éstos puntajes al modificarse el m.
-    #Recibe como parámetro una lista de m (M) y un único alfa.
+    #Función para un gráfico donde se muestre la variación de los puntajes de los tres museos con mayor Pagerank para distintos m
+    #Se muestra la evolución de éstos puntajes al modificarse el m
+    #Recibe como parámetro una lista de m (M) y un único alfa  
     
     #Creamos un diccionario.
     museosCentrales = {}
@@ -290,7 +290,7 @@ def graficos_pagerank_por_m(M, alfa):
 def graficos_pagerank_por_alfa(m, alfas):
     #Función para un gráfico donde se muestre la variación de los puntajes de los tres museos con mayor Pagerank para distintos alfas
     #Se muestra la evolución de éstos puntajes al modificarse el alfa
-    #Recibe como parámetro un único m y una lista de alfas
+    #Recibe como parámetro un único m y una lista de alfas  
     
     #Creamos un diccionario.
     museosCentrales = {}
@@ -375,15 +375,16 @@ def resolver_sist (B):
 
 def calcular_norma_1 (v): 
     #Función para calcular la norma_1 de un vector pasado como parámetro
-    #la norma-1 es la suma del módulo de cada coordenada del vector
+    #La norma-1 es la suma del módulo de cada coordenada del vector
     sumatoria = 0; #inicializamos una variable que guarde las sumas
     for personas in v: #agarramos cada componente del vector para agregarlo a nuestra variable
         sumatoria += abs(personas)
     print(f'La norma 1 del vector v ingresado es: {sumatoria.round()}') #redondeamos, devolviendo un número entero, pues se trata de cantidad de personas
 
+
 #%% Punto 6: cálculo de condición
 def condicion_1_B (B): 
-    #Calcula la condición 1 de la matriz pasada como parámetro B
+    #Calcula la condición 1 de la matriz
     
     #cond_1(B) = ||B||_1 * ||B_inv||_1
     B_inv = calcular_inversa(B) #calculamos la inversa de la matriz B
