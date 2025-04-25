@@ -80,21 +80,6 @@ def resolver_sist_triang_sup (U, y): #resolvemos el sistema Ux = y. U e y son pa
         x[i] = (y[i] - (U[i, y.shape[0] - 1:i:-1]@x[y.shape[0]-1:i:-1]))/U[i][i]
     return x #retorna el vector x buscado
 
-#------------------------------------------------
-def calcular_inversa (matriz): 
-    #Función utilizada para calcular la inversa una matriz pasada como parámetro
-    
-    I = np.eye(matriz.shape[0])
-    L, U = calculaLU(matriz) #agarramos su descomposición LU
-    inversa = np.zeros(matriz.shape) #la inicializamos con 0
-    for i in range(matriz.shape[0]):
-        e = I[:, i] #agarramos en cada iteración un canónico, con los que resolvemos los sistemas
-        #aprovechamos la descomposición LU
-        y = resolver_sist_triang_inf(L, e)
-        x = resolver_sist_triang_sup(U, y)
-        inversa[:, i] = x #la solución final la definimos como columna de la inversa
-    return inversa #retorna la inversa de la matriz pasada como parámetro
-
 #%% Bloque Matrices K y K_inv
 def construye_matriz_de_grado (A): 
     #Función que crea a la matriz de grado K, , a partir de la matriz de adyacencia pasada como parámetro
@@ -383,6 +368,22 @@ def calcular_norma_1 (v):
 
 
 #%% Punto 6: cálculo de condición
+def calcular_inversa (matriz): 
+    #Función utilizada para calcular la inversa una matriz pasada como parámetro
+    
+    I = np.eye(matriz.shape[0])
+    L, U = calculaLU(matriz) #agarramos su descomposición LU
+    inversa = np.zeros(matriz.shape) #la inicializamos con 0
+    for i in range(matriz.shape[0]):
+        e = I[:, i] #agarramos en cada iteración un canónico, con los que resolvemos los sistemas
+        #aprovechamos la descomposición LU
+        y = resolver_sist_triang_inf(L, e)
+        x = resolver_sist_triang_sup(U, y)
+        inversa[:, i] = x #la solución final la definimos como columna de la inversa
+    return inversa #retorna la inversa de la matriz pasada como parámetro
+
+
+
 def condicion_1_B (B): 
     #Calcula la condición 1 de la matriz
     
