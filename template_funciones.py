@@ -365,7 +365,7 @@ def calcular_norma_1 (v):
     for personas in v: #agarramos cada componente del vector para agregarlo a nuestra variable
         sumatoria += abs(personas)
     print(f'La norma 1 del vector v ingresado es: {sumatoria.round()}') #redondeamos, devolviendo un número entero, pues se trata de cantidad de personas
-
+    return 
 
 #%% Punto 6: cálculo de condición
 def calcular_inversa (matriz): 
@@ -408,6 +408,6 @@ def condicion_1_B (B):
             
     #finalmente, multiplicamos las normas_1 de B y B_inv
     condicion_1 = max_B * max_B_inv
-    return condicion_1
-
+    print(f'El número de condición_1 de la matriz B ingresada es: {condicion_1}')
+    return
 
